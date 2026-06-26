@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enlace Alcalá - En Vivo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0b0c10 0%, #1f2833 100%);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; color: #ffffff; padding: 20px;
+        }
+        .player-card {
+            background: rgba(11, 12, 16, 0.85); border: 1px solid #45f3ff;
+            padding: 40px 30px; border-radius: 16px; width: 380px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 219, 222, 0.15);
+        }
+        .live-status {
+            background: rgba(255, 51, 68, 0.15); border: 1px solid #ff3344; color: #ff3344;
+            padding: 6px 16px; font-size: 11px; font-weight: bold; border-radius: 4px;
+            display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; margin-bottom: 25px;
+        }
+        .logo-container {
+            width: 220px; height: 220px; margin: 0 auto 25px auto; border-radius: 12px; padding: 4px;
+            background: linear-gradient(135deg, #45f3ff 0%, #fc00ff 100%);
+        }
+        .logo-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid #0b0c10; }
+        .station-title { font-size: 30px; font-weight: 800; margin-bottom: 6px; text-transform: uppercase; }
+        .station-subtitle { font-size: 13px; color: #66fcf1; margin-bottom: 35px; }
+        
+        .control-button {
+            background: transparent; border: 2px solid #66fcf1; width: 85px; height: 85px;
+            border-radius: 50%; color: #66fcf1; font-size: 26px; cursor: pointer;
+            display: inline-flex; justify-content: center; align-items: center;
+            transition: all 0.3s ease; outline: none;
+        }
+        .control-button:hover { background: #66fcf1; color: #0b0c10; scale: 1.05; }
+    </style>
+</head>
+<body>
+
+    <div class="player-card">
+        <div class="live-status"><i class="fas fa-circle"></i> En Vivo</div>
+        <div class="logo-container">
+            <img class="logo-img" src="https://i.imgur.com/kZKlEcz.jpeg" alt="Logo">
+        </div>
+        <h2 class="station-title">Enlace Alcalá</h2>
+        <p class="station-subtitle">Señal Digital Directa</p>
+
+        <button class="control-button" id="masterPlayBtn" onclick="togglePlayback()">
+            <i class="fas fa-play" id="btnIcon" style="margin-left: 5px;"></i>
+        </button>
+    </div>
+
+    <div id="audioBox"></div>
+
+    <script>
+        const btnIcon = document.getElementById('btnIcon');
+        const audioBox = document.getElementById('audioBox');
+        let playState = false;
+
+        function togglePlayback() {
+            if (!playState) {
+                // Usamos un proxy HTTPS seguro para evitar que Google Chrome bloquee la señal HTTP original
+                const secureStreamUrl = `https://icecast.shoutcasting.top/proxy/alcalaradio?t=${Date.now()}`;
+                audioBox.innerHTML = `<audio id="player" src="${secureStreamUrl}" autoplay></audio>`;
+                btnIcon.className = "fas fa-pause";
+                btnIcon.style.marginLeft = "0px";
+                playState = true;
+            } else {
+                audioBox.innerHTML = '';
+                btnIcon.className = "fas fa-play";
+                btnIcon.style.marginLeft = "5px";
+                playState = false;
+            }
+        }
+    </script>
+</body>
+</html>
