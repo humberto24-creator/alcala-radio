@@ -589,6 +589,7 @@ audio.volume = 0.90;
 
 let userWantsPlay = false;
 let isReconnecting = false;
+let wasInterrupted = false; 
 let currentTrack = "";
 let currentArtist = "ALCALÁ FIESTA 90.3 FM";
 let currentSongName = "EN VIVO";
@@ -631,6 +632,7 @@ function updateMediaSession(){
 
         navigator.mediaSession.setActionHandler('play', () => { 
             userWantsPlay = true; 
+            wasInterrupted = false;
             startStream(); 
         });
         navigator.mediaSession.setActionHandler('pause', () => { 
@@ -719,18 +721,18 @@ async function startStream(){
         try{ await audioCtx.resume(); }catch(e){}
     }
 
-    audio.pause();
     audio.src = STREAM_URL + "?live=" + Date.now();
     audio.load();
     
     try{
         await audio.play();
+        userWantsPlay = true;
+        wasInterrupted = false;
         setIcon("pause");
         updateMediaSession();
     }catch(e){
-        if(userWantsPlay){
-            setTimeout(startStream, 1000);
-        }else{
+        console.log("Error de reproducción:", e);
+        if(!wasInterrupted && !userWantsPlay){
             setIcon("play");
         }
     }finally{
@@ -740,6 +742,7 @@ async function startStream(){
 
 function stopStream(){
     userWantsPlay = false;
+    wasInterrupted = false;
     audio.pause();
     audio.removeAttribute("src");
     audio.load();
@@ -747,10 +750,11 @@ function stopStream(){
 }
 
 function togglePlay(){
-    if(userWantsPlay){
+    if(!audio.paused || userWantsPlay){
         stopStream();
     }else{
         userWantsPlay = true;
+        wasInterrupted = false;
         startStream();
     }
 }
@@ -759,41 +763,39 @@ playBtn.addEventListener("click", togglePlay);
 volEl.addEventListener("input", e => audio.volume = Number(e.target.value));
 
 audio.addEventListener("waiting", () => {
-    if(userWantsPlay) setIcon("loading");
+    if(userWantsPlay && !wasInterrupted) setIcon("loading");
 });
 
 audio.addEventListener("playing", () => {
-    if(userWantsPlay) setIcon("pause");
+    userWantsPlay = true;
+    wasInterrupted = false;
+    setIcon("pause");
+});
+
+// Detectar pausa forzosa externa (llamadas o apps prioritarias)
+audio.addEventListener("pause", () => {
+    if(userWantsPlay && !audio.ended && document.hidden === false) {
+        wasInterrupted = true;
+    }
+});
+
+// Reanudar automáticamente cuando el sistema libera el canal de audio
+window.addEventListener("focus", () => {
+    if(userWantsPlay && wasInterrupted) {
+        wasInterrupted = false;
+        startStream();
+    }
 });
 
 audio.addEventListener("error", () => {
-    if(userWantsPlay && !isReconnecting){
-        setTimeout(startStream, 1000);
+    if(userWantsPlay && !isReconnecting && !wasInterrupted){
+        setTimeout(startStream, 1500);
     }
 });
 
 window.addEventListener("online", () => {
-    if(userWantsPlay) startStream();
+    if(userWantsPlay && !wasInterrupted) startStream();
 });
-
-const forceReconnect = () => {
-    if(userWantsPlay && (audio.paused || audio.readyState < 2)){
-        startStream();
-    }
-};
-
-document.addEventListener("visibilitychange", () => {
-    if(!document.hidden) forceReconnect();
-});
-
-window.addEventListener("pageshow", forceReconnect);
-window.addEventListener("focus", forceReconnect);
-
-setInterval(() => {
-    if(userWantsPlay && audio.paused && !isReconnecting){
-        startStream();
-    }
-}, 1500);
 
 function setMainCover(url){
     currentCoverUrl = (url && url !== DEFAULT_LOGO) ? url : DEFAULT_LOGO;
@@ -886,6 +888,10 @@ modal.addEventListener("click", e => { if(e.target === modal) modal.style.displa
 window.addEventListener("load", () => {
     updateMeta();
     setInterval(updateMeta, 8000);
+
+    // Estado inicial listo y seguro en Play (sin forzar reproducción bloqueada)
+    userWantsPlay = false;
+    setIcon("play");
 });
 </script>
 </body>
