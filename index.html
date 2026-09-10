@@ -564,7 +564,6 @@ html, body {
 </div>
 
 <script>
-// Ocultar barra del navegador automáticamente al cargar la página
 window.addEventListener('load', () => {
     setTimeout(() => {
         window.scrollTo(0, 1);
@@ -582,21 +581,21 @@ const ICECAST_JSON = "https://stream.alcalafiesta.com/status-json.xsl";
 const DEFAULT_LOGO = "https://i.imgur.com/quYgKa7.png";
 const PHONE = "573206137061";
 
-let audio = new Audio();
-audio.crossOrigin = "anonymous";
-audio.preload = "auto";
-audio.volume = 0.90;
-
+let audio = null;
 let userWantsPlay = false;
 let isReconnecting = false;
 let wasInterrupted = false; 
 let currentTrack = "";
+let lastQueryTrack = "";
 let currentArtist = "ALCALÁ FIESTA 90.3 FM";
 let currentSongName = "EN VIVO";
 let currentCoverUrl = DEFAULT_LOGO;
+let isPageVisible = true;
+let reconnectTimer = null;
 
 let audioCtx = null;
 let analyser = null;
+let gainNode = null; 
 let source = null;
 let vizInit = false;
 
@@ -651,12 +650,28 @@ function initViz(){
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 128;
         analyser.smoothingTimeConstant = 0.75;
-        source = audioCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
+        
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = 1.35; 
+
         vizInit = true;
+        if(audio) connectAudioToViz();
         renderViz();
     }catch(e){ console.log("Viz:", e); }
+}
+
+function connectAudioToViz(){
+    if(!vizInit || !audio) return;
+    try {
+        if(source) {
+            try { source.disconnect(); } catch(err){}
+        }
+        source = audioCtx.createMediaElementSource(audio);
+        
+        source.connect(gainNode);
+        gainNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+    } catch(e) { console.log("Connect viz error:", e); }
 }
 
 function renderViz(){
@@ -670,16 +685,20 @@ function renderViz(){
     resize();
     window.addEventListener("resize", resize);
 
-    const len = analyser.frequencyBinCount;
+    const len = analyser ? analyser.frequencyBinCount : 64;
     const data = new Uint8Array(len);
 
     function draw(){
         requestAnimationFrame(draw);
-        if(!userWantsPlay || audio.paused){
+
+        if(!isPageVisible || !userWantsPlay || !audio || audio.paused){
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
-        analyser.getByteFrequencyData(data);
+
+        if(analyser) {
+            analyser.getByteFrequencyData(data);
+        }
 
         const w = canvas.width;
         const h = canvas.height;
@@ -711,7 +730,55 @@ function renderViz(){
     draw();
 }
 
+function createNewAudioElement() {
+    if(audio) {
+        audio.pause();
+        audio.src = "";
+        audio.load();
+    }
+
+    audio = new Audio();
+    audio.crossOrigin = "anonymous";
+    audio.preload = "auto";
+    audio.volume = Number(volEl.value);
+
+    audio.addEventListener("waiting", () => {
+        if(userWantsPlay && !wasInterrupted) setIcon("loading");
+    });
+
+    audio.addEventListener("playing", () => {
+        userWantsPlay = true;
+        wasInterrupted = false;
+        isReconnecting = false;
+        setIcon("pause");
+    });
+
+    audio.addEventListener("pause", () => {
+        if(userWantsPlay && !audio.ended && !isReconnecting) {
+            wasInterrupted = true;
+        }
+    });
+
+    audio.addEventListener("error", () => {
+        if(userWantsPlay && !isReconnecting){
+            isReconnecting = false;
+            wasInterrupted = true;
+            if(reconnectTimer) clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(startStream, 2000);
+        }
+    });
+
+    if(vizInit) {
+        connectAudioToViz();
+    }
+}
+
 async function startStream(){
+    if(reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+
     if(isReconnecting) return;
     isReconnecting = true;
     setIcon("loading");
@@ -721,6 +788,8 @@ async function startStream(){
         try{ await audioCtx.resume(); }catch(e){}
     }
 
+    createNewAudioElement();
+
     audio.src = STREAM_URL + "?live=" + Date.now();
     audio.load();
     
@@ -728,29 +797,38 @@ async function startStream(){
         await audio.play();
         userWantsPlay = true;
         wasInterrupted = false;
+        isReconnecting = false;
         setIcon("pause");
         updateMediaSession();
     }catch(e){
-        console.log("Error de reproducción:", e);
-        if(!wasInterrupted && !userWantsPlay){
-            setIcon("play");
-        }
-    }finally{
+        console.log("Reproducción bloqueada por políticas del navegador:", e);
         isReconnecting = false;
+        wasInterrupted = true;
+        setIcon("play");
     }
 }
 
 function stopStream(){
     userWantsPlay = false;
     wasInterrupted = false;
-    audio.pause();
-    audio.removeAttribute("src");
-    audio.load();
+    if(reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+    if(audio) {
+        audio.pause();
+        audio.src = "";
+        audio.load();
+    }
     setIcon("play");
 }
 
 function togglePlay(){
-    if(!audio.paused || userWantsPlay){
+    if(audioCtx && audioCtx.state === "suspended"){
+        audioCtx.resume();
+    }
+
+    if(audio && !audio.paused && userWantsPlay){
         stopStream();
     }else{
         userWantsPlay = true;
@@ -760,42 +838,34 @@ function togglePlay(){
 }
 
 playBtn.addEventListener("click", togglePlay);
-volEl.addEventListener("input", e => audio.volume = Number(e.target.value));
-
-audio.addEventListener("waiting", () => {
-    if(userWantsPlay && !wasInterrupted) setIcon("loading");
+volEl.addEventListener("input", e => {
+    const val = Number(e.target.value);
+    if(audio) audio.volume = val;
 });
 
-audio.addEventListener("playing", () => {
-    userWantsPlay = true;
-    wasInterrupted = false;
-    setIcon("pause");
-});
+const triggerAutoReconnect = () => {
+    if(userWantsPlay && (wasInterrupted || (audio && audio.paused))) {
+        wasInterrupted = false;
+        startStream();
+    }
+};
 
-// Detectar pausa forzosa externa (llamadas o apps prioritarias)
-audio.addEventListener("pause", () => {
-    if(userWantsPlay && !audio.ended && document.hidden === false) {
-        wasInterrupted = true;
+window.addEventListener("focus", triggerAutoReconnect);
+window.addEventListener("online", triggerAutoReconnect);
+
+document.addEventListener("visibilitychange", () => {
+    isPageVisible = !document.hidden;
+    if(isPageVisible) {
+        triggerAutoReconnect();
     }
 });
 
-// Reanudar automáticamente cuando el sistema libera el canal de audio
-window.addEventListener("focus", () => {
+document.addEventListener("click", () => {
     if(userWantsPlay && wasInterrupted) {
         wasInterrupted = false;
         startStream();
     }
-});
-
-audio.addEventListener("error", () => {
-    if(userWantsPlay && !isReconnecting && !wasInterrupted){
-        setTimeout(startStream, 1500);
-    }
-});
-
-window.addEventListener("online", () => {
-    if(userWantsPlay && !wasInterrupted) startStream();
-});
+}, { passive: true });
 
 function setMainCover(url){
     currentCoverUrl = (url && url !== DEFAULT_LOGO) ? url : DEFAULT_LOGO;
@@ -852,7 +922,13 @@ async function updateMeta(){
         const s = Array.isArray(src) ? (src.find(i => i.mount === "/radio.mp3") || src[0]) : src;
         if(!s || !s.title) return;
 
-        const raw = String(s.title).trim();
+        let raw = String(s.title).trim();
+        
+        // Limpieza profunda definitiva: elimina cualquier caracter extraño, paréntesis incompletos al final o símbolos de interrogación generados por mala codificación del encoder de PC
+        raw = raw.replace(/\s*\?\s*/g, ' ');
+        raw = raw.replace(/\s*\([A-Za-z0-9\s]*$/, '').trim(); 
+        raw = raw.replace(/^[\s\uFEFF\xA0\?]+/, '').trim();
+
         if(!raw || raw === currentTrack) return;
         currentTrack = raw;
 
@@ -872,7 +948,12 @@ async function updateMeta(){
         applyScroll(songEl, songWrap);
 
         updateWA(currentTrack);
-        fetchiTunesCover(a, song);
+        
+        if(raw !== lastQueryTrack) {
+            lastQueryTrack = raw;
+            fetchiTunesCover(currentArtist, currentSongName);
+        }
+        
         updateMediaSession();
     }catch(e){}
 }
@@ -889,7 +970,6 @@ window.addEventListener("load", () => {
     updateMeta();
     setInterval(updateMeta, 8000);
 
-    // Estado inicial listo y seguro en Play (sin forzar reproducción bloqueada)
     userWantsPlay = false;
     setIcon("play");
 });
