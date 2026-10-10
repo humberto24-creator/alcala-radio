@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Publicidad | Alcalá Fiesta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-white p-4 flex justify-center min-h-screen">
+    <div class="w-full max-w-md bg-slate-800 p-6 rounded-3xl border border-white/10 shadow-2xl my-auto">
+        <h2 class="text-xl font-black text-purple-400 text-center uppercase tracking-wider mb-1">Generador de Publicidad</h2>
+        <p class="text-slate-400 text-[10px] text-center uppercase tracking-widest mb-6">Alcalá Fiesta 90.3 FM</p>
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-300 uppercase">Nombre del Comercio</label>
+                <input type="text" id="cliente" placeholder="EJ: MONTAGAS" class="w-full p-3 mt-1 rounded-xl bg-slate-950 border border-white/10 text-white uppercase text-xs outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-300 uppercase">Link de la Imagen</label>
+                <input type="url" id="urlImg" placeholder="https://i.imgur.com/..." class="w-full p-3 mt-1 rounded-xl bg-slate-950 border border-white/10 text-white text-xs outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <button onclick="agregarSponsor()" class="w-full bg-purple-600 hover:bg-purple-500 p-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all">
+                Añadir a la lista
+            </button>
+        </div>
+
+        <div class="mt-6">
+            <label class="text-[10px] font-bold text-purple-300 uppercase">Código para `publicidad.json`:</label>
+            <textarea id="jsonOutput" readonly class="w-full h-32 p-3 mt-1 rounded-xl bg-slate-950 border border-white/10 text-green-400 font-mono text-[11px] outline-none resize-none"></textarea>
+            
+            <button onclick="copiarCodigo()" class="w-full mt-2 bg-slate-700 hover:bg-slate-600 p-2 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-200">
+                <i class="fas fa-copy mr-1"></i> Copiar Código
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let lista = [];
+
+        // Carga la lista actual desde publicidad.json
+        fetch('publicidad.json?t=' + Date.now())
+            .then(res => res.json())
+            .then(data => {
+                if(Array.isArray(data)) lista = data;
+                actualizarOutput();
+            }).catch(() => {});
+
+        function agregarSponsor() {
+            const nom = document.getElementById('cliente').value.trim().toUpperCase();
+            const url = document.getElementById('urlImg').value.trim();
+
+            if(!nom || !url) {
+                alert('Por favor completa ambos campos.');
+                return;
+            }
+
+            lista.unshift({ cliente: nom, url: url });
+            actualizarOutput();
+
+            document.getElementById('cliente').value = '';
+            document.getElementById('urlImg').value = '';
+        }
+
+        function actualizarOutput() {
+            document.getElementById('jsonOutput').value = JSON.stringify(lista, null, 2);
+        }
+
+        function copiarCodigo() {
+            const txt = document.getElementById('jsonOutput');
+            txt.select();
+            document.execCommand('copy');
+            alert('¡Código copiado! Ahora pégalo en tu archivo publicidad.json en GitHub.');
+        }
+    </script>
+</body>
+</html>
