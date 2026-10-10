@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#080c14">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="referrer" content="no-referrer">
 <title>Alcalá Fiesta 90.3 FM | La Que Te Mueve</title>
 
+<!-- PWA Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alcalá Fiesta">
 <link rel="manifest" href="manifest.json">
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -79,6 +81,7 @@ html, body {
     padding: 2px 8px;
     font-size: 8px;
     font-weight: 700;
+    transition: all 0.3s ease;
 }
 
 .live-dot {
@@ -87,6 +90,17 @@ html, body {
     border-radius: 50%;
     background: #2be878;
     box-shadow: 0 0 6px #2be878;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.live-badge.buffering .live-dot {
+    background: #f2a83b;
+    box-shadow: 0 0 6px #f2a83b;
+}
+
+.live-badge.offline .live-dot {
+    background: #ff4757;
+    box-shadow: 0 0 6px #ff4757;
 }
 
 .radio-title {
@@ -110,7 +124,7 @@ html, body {
 }
 
 .logo-card {
-    width: min(60vw, 210px);
+    width: min(56vw, 190px);
     aspect-ratio: 1 / 1;
     border-radius: 24px;
     background: linear-gradient(145deg, #182332, #0d131d);
@@ -256,26 +270,11 @@ html, body {
     box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
-.social-btn.fb {
-    border: 1.5px solid #0072ff;
-    box-shadow: 0 0 10px rgba(0, 114, 255, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-}
-.social-btn.ig {
-    border: 1.5px solid #e1306c;
-    box-shadow: 0 0 10px rgba(225, 48, 108, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-}
-.social-btn.tk {
-    border: 1.5px solid #00f0ff;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-}
-.social-btn.wa {
-    border: 1.5px solid #25d366;
-    box-shadow: 0 0 10px rgba(37, 211, 102, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-}
-.social-btn.yt {
-    border: 1.5px solid #ff0000;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5), inset 0 1px 1px rgba(255, 0, 0, 0.2);
-}
+.social-btn.fb { border: 1.5px solid #0072ff; box-shadow: 0 0 10px rgba(0, 114, 255, 0.5); }
+.social-btn.ig { border: 1.5px solid #e1306c; box-shadow: 0 0 10px rgba(225, 48, 108, 0.5); }
+.social-btn.tk { border: 1.5px solid #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+.social-btn.wa { border: 1.5px solid #25d366; box-shadow: 0 0 10px rgba(37, 211, 102, 0.5); }
+.social-btn.yt { border: 1.5px solid #ff0000; box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
 
 .social-item span {
     font-size: 8px;
@@ -302,7 +301,8 @@ html, body {
     gap: 6px;
 }
 
-.vol-control i { color: #8fa0b5; font-size: 11px; }
+.vol-control i { color: #8fa0b5; font-size: 11px; cursor: pointer; transition: color 0.2s; }
+.vol-control i:hover { color: var(--cyan-neon); }
 
 #vol {
     width: 100%;
@@ -354,7 +354,7 @@ html, body {
 
 .visualizer-wrap {
     width: 100%;
-    height: 40px;
+    height: 36px;
 }
 
 .visualizer-wrap canvas {
@@ -408,6 +408,20 @@ html, body {
     border-radius: 2px;
 }
 
+#installBtn {
+    color: var(--cyan-neon);
+    animation: pulseInstall 1.5s infinite;
+}
+#installBtn i {
+    color: var(--cyan-neon);
+}
+
+@keyframes pulseInstall {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; text-shadow: 0 0 8px var(--cyan-neon); }
+    100% { opacity: 0.7; }
+}
+
 .slogan-hand {
     font-family: 'Dancing Script', cursive;
     font-size: 16px;
@@ -433,40 +447,6 @@ html, body {
     text-transform: uppercase;
     text-align: center;
 }
-
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(10px);
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-}
-
-.modal-box {
-    width: 100%;
-    max-width: 380px;
-    height: min(500px, 85vh);
-    background: #0b0f14;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 20px;
-    overflow: hidden;
-}
-
-.modal-head {
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.close-btn { font-size: 22px; color: #9da6b2; cursor: pointer; }
-.modal iframe { width: 100%; height: calc(100% - 44px); border: 0; }
 </style>
 </head>
 
@@ -475,26 +455,26 @@ html, body {
 <main class="app-container">
 
     <header class="topbar">
-        <div class="live-badge"><span class="live-dot"></span> EN VIVO</div>
+        <div id="liveBadge" class="live-badge"><span class="live-dot"></span> <span id="badgeText">EN VIVO</span></div>
         <div class="radio-title"><i class="fas fa-broadcast-tower"></i> RADIO ONLINE</div>
         <div class="tagline-sub">LA MÚSICA QUE NOS UNE</div>
     </header>
 
     <section class="logo-card">
-        <img id="mainLogo" src="https://i.imgur.com/quYgKa7.png" alt="Carátula / Logo">
+        <img id="mainLogo" src="https://i.imgur.com/quYgKa7.png" referrerpolicy="no-referrer" alt="Carátula / Logo">
     </section>
 
     <section class="now-card">
         <div class="cover-box">
-            <img class="cover-img" src="https://i.imgur.com/quYgKa7.png" alt="Logo Alcalá Fiesta">
+            <img class="cover-img" id="smallCover" src="https://i.imgur.com/quYgKa7.png" referrerpolicy="no-referrer" alt="Logo Alcalá Fiesta">
             <div class="note-badge"><i class="fas fa-music"></i></div>
         </div>
         <div class="meta-info">
             <div class="meta-label">AHORA EN VIVO</div>
             <div class="scroll-wrapper" id="songWrap">
-                <div id="song" class="meta-song">CARGANDO...</div>
+                <div id="song" class="meta-song" data-text="CARGANDO...">CARGANDO...</div>
             </div>
-            <div id="artist" class="meta-artist"></div>
+            <div id="artist" class="meta-artist">ALCALÁ FIESTA 90.3 FM</div>
         </div>
     </section>
 
@@ -523,8 +503,8 @@ html, body {
 
     <section class="player-capsule">
         <div class="vol-control">
-            <i class="fas fa-volume-high"></i>
-            <input id="vol" type="range" min="0" max="1" step="0.01" value="0.90">
+            <i id="muteBtn" class="fas fa-volume-high" title="Silenciar / Activar audio"></i>
+            <input id="vol" type="range" min="0" max="1" step="0.01" value="1.0">
         </div>
 
         <button id="play" class="play-btn" aria-label="Play">
@@ -543,60 +523,75 @@ html, body {
     <section class="bottom-bar">
         <div class="nav-group">
             <a href="#" class="nav-link active"><i class="fas fa-house"></i>INICIO</a>
-            <a href="#" id="chatBtn" class="nav-link"><i class="fab fa-whatsapp"></i>CHAT</a>
-            <a href="#" class="nav-link"><i class="far fa-bell"></i>NOTICIAS</a>
+            <a href="#" id="installBtn" class="nav-link" style="display: none;"><i class="fas fa-download"></i>INSTALAR</a>
         </div>
         <div class="slogan-hand">La Que Te Mueve</div>
     </section>
 
-    <footer class="copyright">&copy; 2026 ALCALÁ FIESTA | 90.3 FM</footer>
+    <footer class="copyright">&copy; 2026 ALCALÁ STREAMING &bull; 90.3 FM</footer>
 
 </main>
 
-<div id="modalChat" class="modal">
-    <div class="modal-box">
-        <div class="modal-head">
-            <span class="text-xs font-bold tracking-widest text-gray-400">CABINA DE CHAT</span>
-            <span id="closeModal" class="close-btn">&times;</span>
-        </div>
-        <iframe src="pedir.php" title="Mensajes"></iframe>
-    </div>
-</div>
-
 <script>
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        window.scrollTo(0, 1);
-    }, 0);
-});
-
+// Registro del Service Worker para la PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
     });
 }
 
+// Lógica del Botón de Instalación PWA
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if(installBtn) installBtn.style.display = "flex";
+});
+
+if(installBtn) {
+    installBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if(outcome === 'accepted') {
+            console.log('Usuario aceptó instalar la PWA');
+        }
+        deferredPrompt = null;
+        installBtn.style.display = "none";
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    if(installBtn) installBtn.style.display = "none";
+});
+
 const STREAM_URL = "https://stream.alcalafiesta.com/radio.mp3";
 const ICECAST_JSON = "https://stream.alcalafiesta.com/status-json.xsl";
 const DEFAULT_LOGO = "https://i.imgur.com/quYgKa7.png";
 const PHONE = "573206137061";
 
-let audio = null;
+const audio = new Audio();
+audio.crossOrigin = "anonymous";
+audio.preload = "auto";
+audio.volume = 1.0;
+
 let userWantsPlay = false;
 let isReconnecting = false;
-let wasInterrupted = false; 
+let lastVolume = 1.0;
 let currentTrack = "";
-let lastQueryTrack = "";
 let currentArtist = "ALCALÁ FIESTA 90.3 FM";
 let currentSongName = "EN VIVO";
 let currentCoverUrl = DEFAULT_LOGO;
-let isPageVisible = true;
-let reconnectTimer = null;
 
 let audioCtx = null;
 let analyser = null;
-let gainNode = null; 
 let source = null;
+let gainNode = null;         
+let compressorNode = null;   
 let vizInit = false;
 
 const playBtn = document.getElementById("play");
@@ -605,41 +600,54 @@ const songEl = document.getElementById("song");
 const artistEl = document.getElementById("artist");
 const songWrap = document.getElementById("songWrap");
 const mainLogoEl = document.getElementById("mainLogo");
+const smallCoverEl = document.getElementById("smallCover");
 const volEl = document.getElementById("vol");
-const modal = document.getElementById("modalChat");
+const muteBtn = document.getElementById("muteBtn");
+const liveBadge = document.getElementById("liveBadge");
+const badgeText = document.getElementById("badgeText");
+
+function setStatusBadge(status, text){
+    liveBadge.className = "live-badge";
+    if(status === "buffering"){
+        liveBadge.classList.add("buffering");
+        badgeText.textContent = text || "CONECTANDO";
+    }else if(status === "offline"){
+        liveBadge.classList.add("offline");
+        badgeText.textContent = text || "SIN SEÑAL";
+    }else{
+        badgeText.textContent = "EN VIVO";
+    }
+}
 
 function setIcon(state){
     playBtn.classList.remove("loading");
     if(state === "loading"){
         playBtn.classList.add("loading");
         icon.className = "fas fa-circle-notch";
+        setStatusBadge("buffering", "CONECTANDO");
     }else if(state === "pause"){
         icon.className = "fas fa-pause";
+        setStatusBadge("live");
     }else{
         icon.className = "fas fa-play";
+        setStatusBadge("offline", "PAUSADO");
     }
 }
 
 function updateMediaSession(){
     if('mediaSession' in navigator){
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: currentSongName,
-            artist: currentArtist,
-            album: 'Alcalá Fiesta 90.3 FM',
-            artwork: [{ src: currentCoverUrl, sizes: '512x512', type: 'image/png' }]
-        });
-
-        navigator.mediaSession.setActionHandler('play', () => { 
-            userWantsPlay = true; 
-            wasInterrupted = false;
-            startStream(); 
-        });
-        navigator.mediaSession.setActionHandler('pause', () => { 
-            stopStream(); 
-        });
-        navigator.mediaSession.setActionHandler('stop', () => { 
-            stopStream(); 
-        });
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentSongName,
+                artist: currentArtist,
+                album: 'Alcalá Fiesta 90.3 FM',
+                artwork: [
+                    { src: currentCoverUrl, sizes: '512x512', type: 'image/png' }
+                ]
+            });
+            navigator.mediaSession.setActionHandler('play', () => { if(!userWantsPlay) togglePlay(); });
+            navigator.mediaSession.setActionHandler('pause', () => { if(userWantsPlay) togglePlay(); });
+        } catch(e){}
     }
 }
 
@@ -652,35 +660,38 @@ function initViz(){
         analyser.smoothingTimeConstant = 0.75;
         
         gainNode = audioCtx.createGain();
-        gainNode.gain.value = 1.35; 
+        const initialVol = Number(volEl.value);
+        gainNode.gain.value = initialVol === 1 ? 1.8 : (0.2 + (initialVol * 1.6));
 
-        vizInit = true;
-        if(audio) connectAudioToViz();
-        renderViz();
-    }catch(e){ console.log("Viz:", e); }
-}
+        compressorNode = audioCtx.createDynamicsCompressor();
+        compressorNode.threshold.value = -10; 
+        compressorNode.knee.value = 20;       
+        compressorNode.ratio.value = 3;       
+        compressorNode.attack.value = 0.003;  
+        compressorNode.release.value = 0.25;  
 
-function connectAudioToViz(){
-    if(!vizInit || !audio) return;
-    try {
-        if(source) {
-            try { source.disconnect(); } catch(err){}
-        }
         source = audioCtx.createMediaElementSource(audio);
         
-        source.connect(gainNode);
-        gainNode.connect(analyser);
-        analyser.connect(audioCtx.destination);
-    } catch(e) { console.log("Connect viz error:", e); }
+        source.connect(analyser);
+        analyser.connect(gainNode);
+        gainNode.connect(compressorNode);
+        compressorNode.connect(audioCtx.destination);
+
+        vizInit = true;
+        renderViz();
+    }catch(e){}
 }
 
 function renderViz(){
     const canvas = document.getElementById("visualizer");
+    if(!canvas) return;
     const ctx = canvas.getContext("2d");
 
     const resize = () => {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
+        if(canvas.parentElement){
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
     };
     resize();
     window.addEventListener("resize", resize);
@@ -690,21 +701,17 @@ function renderViz(){
 
     function draw(){
         requestAnimationFrame(draw);
-
-        if(!isPageVisible || !userWantsPlay || !audio || audio.paused){
+        if(!userWantsPlay || audio.paused || !analyser){
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
-
-        if(analyser) {
-            analyser.getByteFrequencyData(data);
-        }
+        analyser.getByteFrequencyData(data);
 
         const w = canvas.width;
         const h = canvas.height;
         ctx.clearRect(0, 0, w, h);
 
-        const bars = 45; 
+        const bars = 42; 
         const gap = 2.5;
         const barW = (w - (gap * (bars - 1))) / bars;
 
@@ -730,55 +737,7 @@ function renderViz(){
     draw();
 }
 
-function createNewAudioElement() {
-    if(audio) {
-        audio.pause();
-        audio.src = "";
-        audio.load();
-    }
-
-    audio = new Audio();
-    audio.crossOrigin = "anonymous";
-    audio.preload = "auto";
-    audio.volume = Number(volEl.value);
-
-    audio.addEventListener("waiting", () => {
-        if(userWantsPlay && !wasInterrupted) setIcon("loading");
-    });
-
-    audio.addEventListener("playing", () => {
-        userWantsPlay = true;
-        wasInterrupted = false;
-        isReconnecting = false;
-        setIcon("pause");
-    });
-
-    audio.addEventListener("pause", () => {
-        if(userWantsPlay && !audio.ended && !isReconnecting) {
-            wasInterrupted = true;
-        }
-    });
-
-    audio.addEventListener("error", () => {
-        if(userWantsPlay && !isReconnecting){
-            isReconnecting = false;
-            wasInterrupted = true;
-            if(reconnectTimer) clearTimeout(reconnectTimer);
-            reconnectTimer = setTimeout(startStream, 2000);
-        }
-    });
-
-    if(vizInit) {
-        connectAudioToViz();
-    }
-}
-
 async function startStream(){
-    if(reconnectTimer) {
-        clearTimeout(reconnectTimer);
-        reconnectTimer = null;
-    }
-
     if(isReconnecting) return;
     isReconnecting = true;
     setIcon("loading");
@@ -788,91 +747,118 @@ async function startStream(){
         try{ await audioCtx.resume(); }catch(e){}
     }
 
-    createNewAudioElement();
-
-    audio.src = STREAM_URL + "?live=" + Date.now();
-    audio.load();
+    audio.src = STREAM_URL + (STREAM_URL.includes("?") ? "&" : "?") + "live=" + Date.now();
     
     try{
         await audio.play();
-        userWantsPlay = true;
-        wasInterrupted = false;
-        isReconnecting = false;
         setIcon("pause");
         updateMediaSession();
     }catch(e){
-        console.log("Reproducción bloqueada por políticas del navegador:", e);
-        isReconnecting = false;
-        wasInterrupted = true;
-        setIcon("play");
+        if(userWantsPlay){
+            setStatusBadge("buffering", "RECONECTANDO");
+            setTimeout(() => { isReconnecting = false; startStream(); }, 2000);
+            return;
+        }else{
+            setIcon("play");
+        }
     }
+    isReconnecting = false;
 }
 
 function stopStream(){
     userWantsPlay = false;
-    wasInterrupted = false;
-    if(reconnectTimer) {
-        clearTimeout(reconnectTimer);
-        reconnectTimer = null;
-    }
-    if(audio) {
-        audio.pause();
-        audio.src = "";
-        audio.load();
-    }
+    isReconnecting = false;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
     setIcon("play");
 }
 
 function togglePlay(){
-    if(audioCtx && audioCtx.state === "suspended"){
-        audioCtx.resume();
-    }
-
-    if(audio && !audio.paused && userWantsPlay){
+    if(userWantsPlay){
         stopStream();
     }else{
         userWantsPlay = true;
-        wasInterrupted = false;
         startStream();
     }
 }
 
 playBtn.addEventListener("click", togglePlay);
+
+// Control de Volumen y Mute
+function updateVolumeUI(val){
+    volEl.value = val;
+    audio.volume = val;
+    if(gainNode){
+        gainNode.gain.value = val === 0 ? 0 : (val === 1 ? 1.8 : (0.2 + (val * 1.6)));
+    }
+    if(val == 0){
+        muteBtn.className = "fas fa-volume-xmark";
+        muteBtn.style.color = "#ff4757";
+    } else {
+        muteBtn.className = "fas fa-volume-high";
+        muteBtn.style.color = "#8fa0b5";
+    }
+}
+
 volEl.addEventListener("input", e => {
     const val = Number(e.target.value);
-    if(audio) audio.volume = val;
+    if(val > 0) lastVolume = val;
+    updateVolumeUI(val);
 });
 
-const triggerAutoReconnect = () => {
-    if(userWantsPlay && (wasInterrupted || (audio && audio.paused))) {
-        wasInterrupted = false;
-        startStream();
+muteBtn.addEventListener("click", () => {
+    if(Number(volEl.value) > 0){
+        lastVolume = Number(volEl.value);
+        updateVolumeUI(0);
+    } else {
+        updateVolumeUI(lastVolume > 0 ? lastVolume : 0.8);
     }
-};
+});
 
-window.addEventListener("focus", triggerAutoReconnect);
-window.addEventListener("online", triggerAutoReconnect);
+audio.addEventListener("waiting", () => {
+    if(userWantsPlay) setIcon("loading");
+});
+
+audio.addEventListener("playing", () => {
+    if(userWantsPlay) setIcon("pause");
+});
+
+audio.addEventListener("error", () => {
+    if(userWantsPlay && !isReconnecting){
+        setStatusBadge("buffering", "RECONECTANDO");
+        setTimeout(() => { isReconnecting = false; startStream(); }, 2500);
+    }
+});
+
+window.addEventListener("online", () => {
+    if(userWantsPlay && audio.paused) startStream();
+});
 
 document.addEventListener("visibilitychange", () => {
-    isPageVisible = !document.hidden;
-    if(isPageVisible) {
-        triggerAutoReconnect();
+    if(!document.hidden && userWantsPlay && audio.paused){
+        startStream();
     }
 });
 
-document.addEventListener("click", () => {
-    if(userWantsPlay && wasInterrupted) {
-        wasInterrupted = false;
-        startStream();
-    }
-}, { passive: true });
-
 function setMainCover(url){
-    currentCoverUrl = (url && url !== DEFAULT_LOGO) ? url : DEFAULT_LOGO;
-    mainLogoEl.src = currentCoverUrl;
+    const validUrl = (url && url.startsWith("http")) ? url : DEFAULT_LOGO;
+    currentCoverUrl = validUrl;
+    
+    mainLogoEl.onerror = null;
+    smallCoverEl.onerror = null;
+
+    mainLogoEl.src = validUrl;
+    smallCoverEl.src = validUrl;
+    
     mainLogoEl.onerror = () => {
+        mainLogoEl.onerror = null;
         currentCoverUrl = DEFAULT_LOGO;
         mainLogoEl.src = DEFAULT_LOGO;
+    };
+    smallCoverEl.onerror = () => {
+        smallCoverEl.onerror = null;
+        smallCoverEl.src = DEFAULT_LOGO;
     };
     updateMediaSession();
 }
@@ -887,28 +873,89 @@ function updateWA(track){
 
 function applyScroll(element, wrapper){
     element.classList.remove("marquee-active");
-    element.textContent = element.dataset.text;
+    const txt = element.dataset.text || element.textContent || "";
+    element.textContent = txt;
 
-    if(element.scrollWidth > wrapper.clientWidth){
-        element.innerHTML = `${element.dataset.text} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${element.dataset.text}`;
-        element.classList.add("marquee-active");
-    }
+    setTimeout(() => {
+        if(element.scrollWidth > wrapper.clientWidth){
+            element.innerHTML = `${txt} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${txt}`;
+            element.classList.add("marquee-active");
+        }
+    }, 50);
 }
 
-async function fetchiTunesCover(artist, song){
-    try{
-        const q = encodeURIComponent(`${artist} ${song}`.trim());
-        const res = await fetch(`https://itunes.apple.com/search?term=${q}&media=music&entity=song&limit=1`);
-        const data = await res.json();
-        if(data.results && data.results.length){
-            const art = data.results[0].artworkUrl100.replace("100x100bb", "500x500bb");
-            setMainCover(art);
-        }else{
-            setMainCover(DEFAULT_LOGO);
+function normalizeText(text) {
+    if (!text) return "";
+    return text.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+// Cruce inteligente: Actualiza tanto el logo principal como la miniatura pequeña
+async function checkSponsorAndCover(rawTrack, artist, song){
+    try {
+        const res = await fetch('publicidad.json?t=' + Date.now(), { cache: 'no-store' });
+        if(res.ok){
+            const sponsors = await res.json();
+            if(Array.isArray(sponsors) && sponsors.length > 0){
+                const upperTrack = rawTrack.toUpperCase();
+                for(let sponsor of sponsors){
+                    const clientName = sponsor.cliente ? sponsor.cliente.trim().toUpperCase() : "";
+                    if(clientName && upperTrack.includes(clientName)){
+                        setMainCover(sponsor.url);
+                        return; 
+                    }
+                }
+            }
         }
-    }catch(e){
+    } catch(e) {}
+
+    fetchAlbumCover(artist, song);
+}
+
+async function fetchAlbumCover(artist, song){
+    if(!artist && !song){
         setMainCover(DEFAULT_LOGO);
+        return;
     }
+
+    const cleanArtist = artist.replace(/[()\[\]]/g, "").replace(/feat\.|ft\.|y\s+/gi, "").trim();
+    const cleanSong = song.replace(/^[0-9]+\s*[-–]\s*/, "").replace(/\(.*?\)|\[.*?\]|remix|mix|en vivo|live|radio edit|version/gi, "").trim();
+    const query = `${cleanArtist} ${cleanSong}`.trim();
+
+    try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`);
+        const data = await res.json();
+        
+        if(data.results && data.results.length > 0){
+            const normTarget = normalizeText(cleanArtist);
+            for(let item of data.results) {
+                const itemArtistNorm = normalizeText(item.artistName);
+                if(normTarget && (itemArtistNorm.includes(normTarget) || normTarget.includes(itemArtistNorm))) {
+                    const art = item.artworkUrl100.replace("100x100bb", "600x600bb");
+                    setMainCover(art);
+                    return;
+                }
+            }
+            const art = data.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
+            setMainCover(art);
+            return;
+        }
+    } catch(e) {}
+
+    try {
+        const resArtist = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtist)}&media=music&entity=musicArtist&limit=1`);
+        const dataArtist = await resArtist.json();
+        if(dataArtist.results && dataArtist.results.length > 0 && dataArtist.results[0].artworkUrl100) {
+            const art = dataArtist.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
+            setMainCover(art);
+            return;
+        }
+    } catch(e) {}
+
+    setMainCover(DEFAULT_LOGO);
 }
 
 async function updateMeta(){
@@ -919,16 +966,10 @@ async function updateMeta(){
         const src = data?.icestats?.source;
         if(!src) return;
 
-        const s = Array.isArray(src) ? (src.find(i => i.mount === "/radio.mp3") || src[0]) : src;
+        const s = Array.isArray(src) ? (src.find(i => i.mount === "/radio.mp3" || i.mount === "radio.mp3") || src[0]) : src;
         if(!s || !s.title) return;
 
-        let raw = String(s.title).trim();
-        
-        // Limpieza profunda definitiva: elimina cualquier caracter extraño, paréntesis incompletos al final o símbolos de interrogación generados por mala codificación del encoder de PC
-        raw = raw.replace(/\s*\?\s*/g, ' ');
-        raw = raw.replace(/\s*\([A-Za-z0-9\s]*$/, '').trim(); 
-        raw = raw.replace(/^[\s\uFEFF\xA0\?]+/, '').trim();
-
+        const raw = String(s.title).trim();
         if(!raw || raw === currentTrack) return;
         currentTrack = raw;
 
@@ -946,32 +987,23 @@ async function updateMeta(){
         artistEl.textContent = currentArtist;
 
         applyScroll(songEl, songWrap);
-
         updateWA(currentTrack);
         
-        if(raw !== lastQueryTrack) {
-            lastQueryTrack = raw;
-            fetchiTunesCover(currentArtist, currentSongName);
-        }
+        checkSponsorAndCover(raw, a, song);
         
         updateMediaSession();
-    }catch(e){}
+    }catch(e){
+        if(currentSongName === "CARGANDO..."){
+            songEl.dataset.text = "ALCALÁ FIESTA 90.3 FM";
+            artistEl.textContent = "SEÑAL EN DIRECTO";
+            applyScroll(songEl, songWrap);
+        }
+    }
 }
-
-document.getElementById("chatBtn").addEventListener("click", e => {
-    e.preventDefault();
-    modal.style.display = "flex";
-});
-
-document.getElementById("closeModal").addEventListener("click", () => modal.style.display = "none");
-modal.addEventListener("click", e => { if(e.target === modal) modal.style.display = "none"; });
 
 window.addEventListener("load", () => {
     updateMeta();
-    setInterval(updateMeta, 8000);
-
-    userWantsPlay = false;
-    setIcon("play");
+    setInterval(updateMeta, 9000);
 });
 </script>
 </body>
