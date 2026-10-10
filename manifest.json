@@ -1,24 +1,17 @@
 {
   "name": "Alcalá Fiesta 90.3 FM",
   "short_name": "Alcalá Fiesta",
-  "description": "La Que Te Mueve - Radio en Vivo",
+  "description": "La Que Te Mueve - Radio Online",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "fullscreen"],
   "background_color": "#080c14",
   "theme_color": "#080c14",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "https://i.imgur.com/quYgKa7.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://i.imgur.com/quYgKa7.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
