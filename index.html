@@ -211,13 +211,12 @@ installBtn.addEventListener('click', async () => {
         if (outcome === 'accepted') {
             deferredPrompt = null;
         }
-    } else {
-        alert("Para instalar la aplicación, usa el menú de opciones de tu navegador (Añadir a la pantalla de inicio).");
     }
 });
 
 window.addEventListener('appinstalled', () => {
-    alert("¡Aplicación instalada con éxito!");
+    deferredPrompt = null;
+    window.location.href = "./apk.html";
 });
 </script>
 
