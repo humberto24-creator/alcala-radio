@@ -367,61 +367,16 @@ html, body {
     background: rgba(9, 13, 19, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 22px;
-    padding: 8px 14px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     min-height: 48px;
-}
-
-.nav-group {
-    display: flex;
-    align-items: center;
-}
-
-.btn-install {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 114, 255, 0.25));
-    border: 1px solid rgba(0, 240, 255, 0.4);
-    color: var(--cyan-neon);
-    padding: 8px 14px;
-    border-radius: 14px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-decoration: none;
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
-    transition: all 0.3s ease;
-    animation: pulseInstall 2s infinite alternate;
-}
-
-.btn-install i {
-    font-size: 13px;
-    color: var(--cyan-neon);
-}
-
-.btn-install:active {
-    transform: scale(0.95);
-    background: rgba(0, 240, 255, 0.3);
-}
-
-@keyframes pulseInstall {
-    0% {
-        box-shadow: 0 0 6px rgba(0, 240, 255, 0.2);
-        border-color: rgba(0, 240, 255, 0.3);
-    }
-    100% {
-        box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
-        border-color: var(--cyan-neon);
-    }
 }
 
 .slogan-hand {
     font-family: 'Dancing Script', cursive;
-    font-size: 16px;
+    font-size: 18px;
     color: #ffffff;
     white-space: nowrap;
     position: relative;
@@ -518,12 +473,6 @@ html, body {
     </div>
 
     <section class="bottom-bar">
-        <div class="nav-group">
-            <a href="#" id="actionBtn" class="btn-install">
-                <i id="actionIcon" class="fas fa-download"></i>
-                <span id="actionText">INSTALAR APP</span>
-            </a>
-        </div>
         <div class="slogan-hand">La Que Te Mueve</div>
     </section>
 
@@ -538,30 +487,6 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
     });
 }
-
-// Instalación DIRECTA PWA
-let deferredPrompt;
-const actionBtn = document.getElementById("actionBtn");
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-});
-
-if (actionBtn) {
-    actionBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-        }
-    });
-}
-
-window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-});
 
 const STREAM_URL = "https://stream.alcalafiesta.com/radio.mp3";
 const ICECAST_JSON = "https://stream.alcalafiesta.com/status-json.xsl";
