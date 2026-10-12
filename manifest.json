@@ -1,7 +1,7 @@
 {
   "name": "Alcalá Fiesta 90.3 FM",
   "short_name": "Alcalá Fiesta",
-  "start_url": "https://alcalafiesta.com/?v=2",
+  "start_url": "./apk.html",
   "display": "standalone",
   "background_color": "#080c14",
   "theme_color": "#080c14",
