@@ -1,11 +1,8 @@
 {
   "name": "Alcalá Fiesta 90.3 FM",
   "short_name": "Alcalá Fiesta",
-  "description": "La Que Te Mueve - Radio en Vivo",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "https://alcalafiesta.com/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "fullscreen"],
   "background_color": "#080c14",
   "theme_color": "#080c14",
   "orientation": "portrait",
