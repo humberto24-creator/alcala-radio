@@ -488,8 +488,8 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-const STREAM_URL = "https://stream.alcalafiesta.com/radio.mp3";
-const ICECAST_JSON = "https://stream.alcalafiesta.com/status-json.xsl";
+const STREAM_URL = "https://stream.zeno.fm/qzt2fnumzq9vv";
+const ZENO_METADATA_URL = "https://api.zeno.fm/mounts/metadata/subscribe/qzt2fnumzq9vv";
 const DEFAULT_LOGO = "https://i.imgur.com/quYgKa7.png";
 const PHONE = "573206137061";
 
@@ -802,15 +802,6 @@ function applyScroll(element, wrapper){
     }, 50);
 }
 
-function normalizeText(text) {
-    if (!text) return "";
-    return text.toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-
 async function checkSponsorAndCover(rawTrack, artist, song){
     try {
         const res = await fetch('publicidad.json?t=' + Date.now(), { cache: 'no-store' });
@@ -833,94 +824,90 @@ async function checkSponsorAndCover(rawTrack, artist, song){
 }
 
 async function fetchAlbumCover(artist, song){
-    if(!artist && !song){
+    if(!song){
         setMainCover(DEFAULT_LOGO);
         return;
     }
 
-    const cleanArtist = artist.replace(/[()\[\]]/g, "").replace(/feat\.|ft\.|y\s+/gi, "").trim();
+    const cleanArtist = (artist && !artist.toUpperCase().includes("OPARDO")) 
+        ? artist.replace(/[()\[\]]/g, "").replace(/feat\.|ft\.|y\s+/gi, "").trim() 
+        : "";
+        
     const cleanSong = song.replace(/^[0-9]+\s*[-–]\s*/, "").replace(/\(.*?\)|\[.*?\]|remix|mix|en vivo|live|radio edit|version/gi, "").trim();
-    const query = `${cleanArtist} ${cleanSong}`.trim();
+    
+    const query = cleanArtist ? `${cleanArtist} ${cleanSong}`.trim() : cleanSong;
 
     try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=3`);
         const data = await res.json();
         
         if(data.results && data.results.length > 0){
-            const normTarget = normalizeText(cleanArtist);
-            for(let item of data.results) {
-                const itemArtistNorm = normalizeText(item.artistName);
-                if(normTarget && (itemArtistNorm.includes(normTarget) || normTarget.includes(itemArtistNorm))) {
-                    const art = item.artworkUrl100.replace("100x100bb", "600x600bb");
-                    setMainCover(art);
-                    return;
-                }
-            }
             const art = data.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
             setMainCover(art);
             return;
         }
     } catch(e) {}
 
-    try {
-        const resArtist = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanArtist)}&media=music&entity=musicArtist&limit=1`);
-        const dataArtist = await resArtist.json();
-        if(dataArtist.results && dataArtist.results.length > 0 && dataArtist.results[0].artworkUrl100) {
-            const art = dataArtist.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
-            setMainCover(art);
-            return;
-        }
-    } catch(e) {}
+    if(cleanArtist) {
+        try {
+            const resSongOnly = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanSong)}&media=music&entity=song&limit=1`);
+            const dataSong = await resSongOnly.json();
+            if(dataSong.results && dataSong.results.length > 0) {
+                const art = dataSong.results[0].artworkUrl100.replace("100x100bb", "600x600bb");
+                setMainCover(art);
+                return;
+            }
+        } catch(e) {}
+    }
 
     setMainCover(DEFAULT_LOGO);
 }
 
-async function updateMeta(){
-    try{
-        const res = await fetch(ICECAST_JSON + "?t=" + Date.now(), { cache: "no-store" });
-        if(!res.ok) return;
-        const data = await res.json();
-        const src = data?.icestats?.source;
-        if(!src) return;
+function initZenoMetadata() {
+    try {
+        const eventSource = new EventSource(ZENO_METADATA_URL);
+        
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                const raw = data.streamTitle || data.title || "";
+                
+                if(!raw || raw === currentTrack) return;
+                currentTrack = raw;
 
-        const s = Array.isArray(src) ? (src.find(i => i.mount === "/radio.mp3" || i.mount === "radio.mp3") || src[0]) : src;
-        if(!s || !s.title) return;
+                let a = "", song = raw;
+                if(raw.includes(" - ")){
+                    const p = raw.split(" - ");
+                    a = p.shift().trim();
+                    song = p.join(" - ").trim();
+                }
 
-        const raw = String(s.title).trim();
-        if(!raw || raw === currentTrack) return;
-        currentTrack = raw;
+                currentSongName = song || "EN VIVO";
+                currentArtist = a || "ALCALÁ FIESTA 90.3 FM";
 
-        let a = "", song = raw;
-        if(raw.includes(" - ")){
-            const p = raw.split(" - ");
-            a = p.shift().trim();
-            song = p.join(" - ").trim();
-        }
+                songEl.dataset.text = currentSongName;
+                artistEl.textContent = currentArtist;
 
-        currentSongName = song || "EN VIVO";
-        currentArtist = a || "ALCALÁ FIESTA 90.3 FM";
+                applyScroll(songEl, songWrap);
+                updateWA(currentTrack);
+                checkSponsorAndCover(raw, a, song);
+                updateMediaSession();
+            } catch (err) {}
+        };
 
-        songEl.dataset.text = currentSongName;
-        artistEl.textContent = currentArtist;
-
+        eventSource.onerror = () => {
+            eventSource.close();
+            setTimeout(initZenoMetadata, 10000);
+        };
+    } catch(e) {
+        songEl.dataset.text = "ALCALÁ FIESTA 90.3 FM";
+        artistEl.textContent = "SEÑAL EN DIRECTO";
         applyScroll(songEl, songWrap);
-        updateWA(currentTrack);
-        
-        checkSponsorAndCover(raw, a, song);
-        
-        updateMediaSession();
-    }catch(e){
-        if(currentSongName === "CARGANDO..."){
-            songEl.dataset.text = "ALCALÁ FIESTA 90.3 FM";
-            artistEl.textContent = "SEÑAL EN DIRECTO";
-            applyScroll(songEl, songWrap);
-        }
     }
 }
 
 window.addEventListener("load", () => {
-    updateMeta();
-    setInterval(updateMeta, 9000);
+    initZenoMetadata();
 });
 </script>
 </body>
